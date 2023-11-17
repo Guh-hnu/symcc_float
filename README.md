@@ -1,5 +1,7 @@
 [![Compile and test SymCC](https://github.com/eurecom-s3/symcc/actions/workflows/run_tests.yml/badge.svg)](https://github.com/eurecom-s3/symcc/actions/workflows/run_tests.yml)
 
+Improve symcc to support float.
+
 Note: The SymCC project is currently understaffed and therefore maintained in a 
 best effort mode. In fact, we are hiring, in case you are interested to join 
 the [S3 group at Eurecom](https://www.s3.eurecom.fr/) to work on this (and other
