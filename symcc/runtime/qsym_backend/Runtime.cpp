@@ -198,7 +198,10 @@ SymExpr _sym_build_integer(uint64_t value, uint8_t bits) {
   // into 32 bits.
   if constexpr (sizeof(uint64_t) == sizeof(uintptr_t)) {
     // 64-bit case: all good.
-    return registerExpression(g_expr_builder->createConstant(value, bits));
+    ExprRef mp = g_expr_builder->createConstant(value, bits);
+    //ConstantExpr temp = *mp;
+    (*mp).print(cout,2);
+    return registerExpression(mp);
   } else {
     // 32-bit case: use the regular API if possible, otherwise create an
     // llvm::APInt.
@@ -353,48 +356,205 @@ SymExpr _sym_build_bool_to_bit(SymExpr expr) {
 // instrumentation expects to be able to create bit-vector expressions for
 // them.
 
-SymExpr _sym_build_float(double, int is_double) {
+//SymExpr _sym_build_integer(uint64_t value, uint8_t bits) {
+//  // QSYM's API takes uintptr_t, so we need to be careful when compiling for
+//  // 32-bit systems: the compiler would helpfully truncate our uint64_t to fit
+//  // into 32 bits.
+//  if constexpr (sizeof(uint64_t) == sizeof(uintptr_t)) {
+//    // 64-bit case: all good.
+//    return registerExpression(g_expr_builder->createConstant(value, bits));
+//  } else {
+//    // 32-bit case: use the regular API if possible, otherwise create an
+//    // llvm::APInt.
+//    if (uintptr_t value32 = value; value32 == value)
+//      return registerExpression(g_expr_builder->createConstant(value32, bits));
+//
+//    return registerExpression(
+//        g_expr_builder->createConstant({64, value}, bits));
+//  }
+//}
+SymExpr _sym_build_float(double value, int is_double) {
   // We create an all-zeros bit vector, mainly to capture the length of the
   // value. This is compatible with our dummy implementation of
   // _sym_build_float_to_bits.
-  return registerExpression(
-      g_expr_builder->createConstant(0, is_double ? 64 : 32));
+    std::cout << " _sym_build_float" << std::endl;
+
+    z3::expr tmp(*g_z3_context);
+    if(is_double){
+        tmp = g_z3_context->fpa_val(value);
+    }
+    else{
+        float value32 = static_cast<float>(value);
+        tmp = g_z3_context->fpa_val(value32);
+    }
+    //ExprRef ref = std::make_shared<tmp>;
+    return  registerExpression(nullptr);
+  //return registerExpression(
+      //g_expr_builder->createConstant(value, is_double ? 64 : 32));
+
 }
 
-SymExpr _sym_build_float_to_bits(SymExpr expr) { return expr; }
 
-#define UNSUPPORTED(prototype)                                                 \
-  prototype { return nullptr; }
+SymExpr _sym_build_float_to_bits(SymExpr expr) {
+    std::cout << " _sym_build_float_to_bits" << std::endl;
+    return expr;
 
-UNSUPPORTED(SymExpr _sym_build_fp_add(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_sub(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_mul(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_div(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_rem(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_abs(SymExpr))
-UNSUPPORTED(SymExpr _sym_build_fp_neg(SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_greater_than(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_greater_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_less_than(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_less_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered_not_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_ordered(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_greater_than(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_greater_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_less_than(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_less_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_float_unordered_not_equal(SymExpr, SymExpr))
-UNSUPPORTED(SymExpr _sym_build_int_to_float(SymExpr, int, int))
-UNSUPPORTED(SymExpr _sym_build_float_to_float(SymExpr, int))
-UNSUPPORTED(SymExpr _sym_build_bits_to_float(SymExpr, int))
-UNSUPPORTED(SymExpr _sym_build_float_to_signed_integer(SymExpr, uint8_t))
-UNSUPPORTED(SymExpr _sym_build_float_to_unsigned_integer(SymExpr, uint8_t))
+}
 
-#undef UNSUPPORTED
-#undef H
+//BEGIN
+SymExpr _sym_build_fp_add(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_fp_add" << std::endl;
+    return registerExpression(g_expr_builder->createAdd(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_fp_sub(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_fp_sub" << std::endl;
+    return registerExpression(g_expr_builder->createSub(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_fp_mul(SymExpr a , SymExpr b) {
+    std::cout << " _sym_build_fp_mul" << std::endl;
+    return registerExpression(g_expr_builder->createMul(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_fp_div(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_fp_div" << std::endl;
+    return registerExpression(g_expr_builder->createSDiv(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_fp_rem(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_fp_rem" << std::endl;
+    return registerExpression(g_expr_builder->createSRem(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+
+//SymExpr _sym_build_float_ordered_greater_equal(SymExpr a, SymExpr b);
+
+SymExpr _sym_build_fp_abs(SymExpr expr) {
+    std::cout << " _sym_build_fp_abs" << std::endl;
+
+    size_t bits = _sym_bits_helper(expr);
+    if(bits == 32)
+    {
+        return _sym_build_ite(
+            _sym_build_float_ordered_greater_equal(expr, _sym_build_float(0, 0)), expr,
+            _sym_build_fp_sub(_sym_build_float(0, 0), expr));
+    }
+    else
+    {
+        return _sym_build_ite(
+            _sym_build_float_ordered_greater_equal(expr, _sym_build_float(0, 1)), expr,
+            _sym_build_fp_sub(_sym_build_float(0, 1), expr));
+    }
+
+}
+SymExpr _sym_build_fp_neg(SymExpr expr) {
+    std::cout << " _sym_build_fp_neg" << std::endl;
+    return registerExpression(g_expr_builder->createNeg(allocatedExpressions.at(expr)));
+}
+SymExpr _sym_build_float_ordered_greater_than(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_greater_than" << std::endl;
+    return registerExpression(g_expr_builder->createSgt(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered_greater_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_greater_equal" << std::endl;
+    return registerExpression(g_expr_builder->createSge(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered_less_than(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_less_than" << std::endl;
+    return registerExpression(g_expr_builder->createSlt(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered_less_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_less_equal" << std::endl;
+    return registerExpression(g_expr_builder->createSle(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_equal" << std::endl;
+    return registerExpression(g_expr_builder->createEqual(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered_not_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered_not_equal" << std::endl;
+    return registerExpression(g_expr_builder->createDistinct(allocatedExpressions.at(a), allocatedExpressions.at(b)));
+}
+SymExpr _sym_build_float_ordered(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_ordered" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_greater_than(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_greater_than" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_greater_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_greater_equal" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_less_than(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_less_than" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_less_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_less_equal" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_equal" << std::endl;
+    return a;
+}
+SymExpr _sym_build_float_unordered_not_equal(SymExpr a, SymExpr b) {
+    std::cout << " _sym_build_float_unordered_not_equal" << std::endl;
+    return a;
+}
+SymExpr _sym_build_int_to_float(SymExpr expr, int is_double, int is_signed) {
+    std::cout << " _sym_build_int_to_float" << std::endl;
+    return expr;
+}
+SymExpr _sym_build_float_to_float(SymExpr expr, int to_double) {
+    std::cout << " _sym_build_float_to_float" << std::endl;
+    return expr;
+}
+SymExpr _sym_build_bits_to_float(SymExpr expr, int to_double) {
+    std::cout << " _sym_build_bits_to_float" << std::endl;
+    return expr;
+}
+SymExpr _sym_build_float_to_signed_integer(SymExpr expr, uint8_t bits) {
+    std::cout << " _sym_build_float_to_signed_integer" << std::endl;
+    return expr;
+}
+SymExpr _sym_build_float_to_unsigned_integer(SymExpr expr, uint8_t bits) {
+    std::cout << " _sym_build_float_to_unsigned_integer" << std::endl;
+    return expr;
+}
+//#define UNSUPPORTED(prototype)                                                 \
+//  prototype { return nullptr; }
+//
+//UNSUPPORTED(SymExpr _sym_build_fp_add(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_sub(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_mul(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_div(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_rem(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_abs(SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_fp_neg(SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_greater_than(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_greater_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_less_than(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_less_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered_not_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_ordered(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_greater_than(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_greater_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_less_than(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_less_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_float_unordered_not_equal(SymExpr, SymExpr))
+//UNSUPPORTED(SymExpr _sym_build_int_to_float(SymExpr, int, int))
+//UNSUPPORTED(SymExpr _sym_build_float_to_float(SymExpr, int))
+//UNSUPPORTED(SymExpr _sym_build_bits_to_float(SymExpr, int))
+//UNSUPPORTED(SymExpr _sym_build_float_to_signed_integer(SymExpr, uint8_t))
+//UNSUPPORTED(SymExpr _sym_build_float_to_unsigned_integer(SymExpr, uint8_t))
+//
+//#undef UNSUPPORTED
+//#undef H
 
 //
 // Call-stack tracing

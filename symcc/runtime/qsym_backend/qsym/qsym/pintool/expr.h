@@ -70,7 +70,7 @@ enum Kind {
 
   // Special
   Ite, // 35
-
+  //NaN
   // Virtual operation
   Rol,
   Ror,
@@ -402,6 +402,9 @@ protected:
   ExprRef evaluateImpl() override;
   llvm::APInt value_;
 };
+
+
+
 
 
 class NonConstantExpr : public Expr {

@@ -1,0 +1,40 @@
+Determining if the include file filesystem exists failed with the following output:
+Change Dir: /home/guh/programs/symcc_float/symcc/cmake-build-debug/SymRuntime-prefix/src/SymRuntime-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/home/guh/disk/clion/clion-2021.3.4/bin/ninja/linux/ninja cmTC_33aa6 && [1/2] Building CXX object CMakeFiles/cmTC_33aa6.dir/CheckIncludeFile.cxx.o
+[31mFAILED: [0mCMakeFiles/cmTC_33aa6.dir/CheckIncludeFile.cxx.o 
+/usr/bin/c++   -std=c++17 -Wredundant-decls -Wcast-align -Wmissing-include-dirs -Wswitch-default -Wextra -Wall -Winvalid-pch -Wredundant-decls -Wformat=2 -Wmissing-format-attribute -Wformat-nonliteral  -std=gnu++1z -o CMakeFiles/cmTC_33aa6.dir/CheckIncludeFile.cxx.o -c /home/guh/programs/symcc_float/symcc/cmake-build-debug/SymRuntime-prefix/src/SymRuntime-build/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+/home/guh/programs/symcc_float/symcc/cmake-build-debug/SymRuntime-prefix/src/SymRuntime-build/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx:1:10: fatal error: filesystem: 没有那个文件或目录
+ #include <filesystem>
+          ^~~~~~~~~~~~
+compilation terminated.
+ninja: build stopped: subcommand failed.
+
+
+
+Performing C++ SOURCE FILE Test CXX_FILESYSTEM_NO_LINK_NEEDED failed with the following compile output:
+Change Dir: /home/guh/programs/symcc_float/symcc/cmake-build-debug/SymRuntime-prefix/src/SymRuntime-build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/home/guh/disk/clion/clion-2021.3.4/bin/ninja/linux/ninja cmTC_72fcf && [1/2] Building CXX object CMakeFiles/cmTC_72fcf.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_72fcf
+[31mFAILED: [0mcmTC_72fcf 
+: && /usr/bin/c++ -std=c++17 -Wredundant-decls -Wcast-align -Wmissing-include-dirs -Wswitch-default -Wextra -Wall -Winvalid-pch -Wredundant-decls -Wformat=2 -Wmissing-format-attribute -Wformat-nonliteral  CMakeFiles/cmTC_72fcf.dir/src.cxx.o -o cmTC_72fcf   && :
+CMakeFiles/cmTC_72fcf.dir/src.cxx.o：在函数‘main’中：
+src.cxx:(.text+0x20)：对‘std::experimental::filesystem::v1::current_path[abi:cxx11]()’未定义的引用
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+...and run output:
+
+Return value: 1
+Source file was:
+        #include <cstdlib>
+        #include <experimental/filesystem>
+
+        int main() {
+            auto cwd = std::experimental::filesystem::current_path();
+            printf("%s", cwd.c_str());
+            return EXIT_SUCCESS;
+        }
+    
